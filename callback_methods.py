@@ -28,12 +28,12 @@ def __get_visit_key__(event_data):
 
 def __add_rating__(event_data):
     visit_id = __get_visit_key__(event_data)
-    #active_visits.find_one_and_update(visit_id, {'$set', event_data['rating']})
+    active_visits.find_one_and_update(visit_id, {'$set': {'rating': event_data['rating']}})
 
 
 def __add_qr_scan__(event_data):
-    pass
-
+    visit_id = __get_visit_key__(event_data)
+    active_visits.find_one_and_update(visit_id, {'$inc': {'qr_scanned': 1}})
 
 def __start_visit__(event_data):
     visit_data = __get_visit_key__(event_data)
@@ -103,4 +103,5 @@ def handle_qr_scan(ch, method, properties, body):
     in the activeVisits cache and increments the qr_scan counter.
     '''
     event_data = __parse_event__(body)
+    __add_qr_scan__(event_data)
     logging.info('QRSCAN - {}'.format(body))
