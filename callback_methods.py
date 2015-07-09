@@ -16,24 +16,24 @@ def __parse_event__(event_body):
     event_json = json.loads(event_body)
 
     return {'user_id': event_json.get('userId', None),
-            'club_id': event_json.get('clubId', None),
+            'item_id': event_json.get('clubId', None),
             'timestamp': event_json.get('timestamp', None),
-            'rating': event_json.get('rating', None),
-            'qr_scan': event_json.get('payload', None)}
+            'preference': event_json.get('rating', None),
+            'qr_scanned': event_json.get('payload', None)}
 
 
 def __get_visit_key__(event_data):
-    return {'user_id': event_data['user_id'], 'club_id': event_data['club_id']}
+    return {'user_id': event_data['user_id'], 'item_id': event_data['item_id']}
 
 
 def __add_rating__(event_data):
     visit_id = __get_visit_key__(event_data)
-    active_visits.find_one_and_update(visit_id, {'$set': {'rating': event_data['rating']}})
+    active_visits.find_one_and_update(visit_id, {'$set': {'preference': event_data['preference']}})
 
 
 def __add_qr_scan__(event_data):
     visit_id = __get_visit_key__(event_data)
-    active_visits.find_one_and_update(visit_id, {'$inc': {'qr_scanned': 1}})
+    active_visits.find_one_and_update(visit_id, {'$inc': {'qr_scanned': int(1)}})
 
 def __start_visit__(event_data):
     visit_data = __get_visit_key__(event_data)
@@ -57,8 +57,8 @@ def __fill_empty_fields__(event_data):
     if not event_data.get('qr_scanned', None):
         event_data['qr_scanned'] = 0
 
-    if not event_data.get('rating', None):
-        event_data['rating'] = 3
+    if not event_data.get('preference', None):
+        event_data['preference'] = 3
 
     return event_data
 
@@ -95,6 +95,7 @@ def handle_rating(ch, method, properties, body):
     event_data = __parse_event__(body)
     __add_rating__(event_data)
     logging.info('RATING - {}'.format(body))
+
 
 def handle_qr_scan(ch, method, properties, body):
     '''
